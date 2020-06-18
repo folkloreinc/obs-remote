@@ -1,0 +1,38 @@
+/**
+ * Media queries trigger
+ */
+body {
+    animation-duration: .001s;
+    animation-name: screen-xsmall;
+    animation-play-state: paused;
+
+    &.dom-ready {
+        animation-play-state: running;
+    }
+
+    @media #{$mq-small-screen} {
+        animation-name: screen-small;
+    }
+    @media #{$mq-medium-screen} {
+        animation-name: screen-medium;
+    }
+    @media #{$mq-large-screen} {
+        animation-name: screen-large;
+    }
+}
+@include keyframes(screen-xsmall) {
+    from { clip: rect(1px, auto, auto, auto); }
+    to { clip: rect(0, auto, auto, auto); }
+}
+@include keyframes(screen-small) {
+    from { clip: rect(1px, auto, auto, auto); }
+    to { clip: rect(0, auto, auto, auto); }
+}
+@include keyframes(screen-medium) {
+    from { clip: rect(1px, auto, auto, auto); }
+    to { clip: rect(0, auto, auto, auto); }
+}
+@include keyframes(screen-large) {
+    from { clip: rect(1px, auto, auto, auto); }
+    to { clip: rect(0, auto, auto, auto); }
+}

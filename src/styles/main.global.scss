@@ -1,0 +1,20 @@
+/**
+ * Commons
+ */
+@import 'commons/variables';
+@import 'commons/placeholders';
+@import 'commons/mixins';
+@import 'commons/fonts';
+@import 'commons/medias_queries';
+@import 'commons/reset';
+@import 'commons/general';
+
+body {
+    background: $color-background;
+    color: $color-text;
+    font-family: $font-text;
+}
+
+/**
+ * Views
+ */

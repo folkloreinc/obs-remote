@@ -1,0 +1,55 @@
+/**
+ * Elements
+ */
+
+a {
+    color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+    font-family: $font-title;
+    font-weight: normal;
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+}
+
+/**
+ * Layout
+ */
+
+.clear {
+    clear: both;
+}
+
+.clearfix {
+    @include clearfix;
+}
+
+.container {
+    margin: 0 auto;
+}
+
+.container-cols {
+    display: table;
+    width: 100%;
+}
+
+.container-col {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.container-col-top {
+    vertical-align: top;
+}
+
+.container-col-right {
+    text-align: right;
+}

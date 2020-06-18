@@ -1,0 +1,11 @@
+@import '../commons/variables';
+@import '../commons/placeholders';
+@import '../commons/mixins';
+
+.container {
+    position: relative;
+
+    .inner {
+        transition: opacity 0.2s ease-out;
+    }
+}

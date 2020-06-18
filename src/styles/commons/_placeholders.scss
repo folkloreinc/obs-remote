@@ -1,0 +1,44 @@
+/**
+ * Containers
+ */
+%fullscreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+%container-cols {
+    display: table;
+    width: 100%;
+}
+
+%container-col {
+    display: table-cell;
+}
+
+
+/**
+ * Controls
+ */
+%reset-button {
+    display: inline-block;
+    position: relative;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-family: $font-text;
+    cursor: pointer;
+    appearance: none;
+}
+
+%reset-input {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-family: $font-text;
+    cursor: pointer;
+    appearance: none;
+}

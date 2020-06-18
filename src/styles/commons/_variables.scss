@@ -1,0 +1,28 @@
+/**
+ * Colors
+ */
+$color-white: #fff;
+$color-black: #000;
+
+$color-background: $color-white;
+$color-text: $color-black;
+
+/**
+ * Fonts
+ */
+$font-text: Helvetica, Arial, sans-serif;
+$font-title: Georgia, serif;
+
+/**
+ * Screen size
+ */
+$small-screen: 500px;
+$medium-screen: 790px;
+$large-screen: 1000px;
+
+/**
+ * Media queries
+ */
+$mq-small-screen: 'only screen and (min-width: #{$small-screen})';
+$mq-medium-screen: 'only screen and (min-width: #{$medium-screen})';
+$mq-large-screen: 'only screen and (min-width: #{$large-screen})';
