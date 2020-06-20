@@ -1,0 +1,21 @@
+@import '../commons/variables';
+@import '../commons/placeholders';
+@import '../commons/mixins';
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .knob {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        transform-origin: 50% 50% 0;
+        border: solid 2px #ddd;
+        border-radius: 50%;
+        background: #eee;
+        pointer-events: auto;
+    }
+}

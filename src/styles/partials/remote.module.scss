@@ -1,0 +1,12 @@
+@import '../commons/variables';
+@import '../commons/placeholders';
+@import '../commons/mixins';
+
+.container {
+    display: flex;
+    flex-direction: column;
+
+    .joystick {
+        flex-grow: 1;
+    }
+}

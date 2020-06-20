@@ -1,16 +1,15 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { defineMessages } from 'react-intl';
-import { useUrlGenerator } from '@folklore/react-container';
 
 // import * as AppPropTypes from '../../lib/PropTypes';
+import { useUrlGenerator } from '../../contexts/RoutesContext';
 import PageMeta from '../partials/PageMeta';
 import Label from '../partials/Label';
 
-import styles from '../../styles/pages/error.scss';
+import styles from '../../styles/pages/error.module.scss';
 
 export const messages = defineMessages({
     metaTitle401: {
@@ -80,7 +79,7 @@ const defaultProps = {
 };
 
 const ErrorPage = ({ statusCode }) => {
-    const urlGenerator = useUrlGenerator();
+    const generateUrl = useUrlGenerator();
     return (
         <div className={styles.container}>
             <PageMeta title={messages[`metaTitle${statusCode || 404}`]} />
@@ -92,7 +91,7 @@ const ErrorPage = ({ statusCode }) => {
                     <Label>{messages[`description${statusCode || 404}`]}</Label>
                 </p>
                 <div className={styles.actions}>
-                    <Link to={urlGenerator.route('home')}>
+                    <Link to={generateUrl('home')}>
                         <Label>{messages.gotoHome}</Label>
                     </Link>
                 </div>
@@ -104,6 +103,4 @@ const ErrorPage = ({ statusCode }) => {
 ErrorPage.propTypes = propTypes;
 ErrorPage.defaultProps = defaultProps;
 
-export default connect(({ site: { statusCode } }) => ({
-    statusCode,
-}))(ErrorPage);
+export default ErrorPage;

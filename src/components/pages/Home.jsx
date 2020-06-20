@@ -4,8 +4,9 @@ import { defineMessages, injectIntl } from 'react-intl';
 
 // import * as AppPropTypes from '../../lib/PropTypes';
 import PageMeta from '../partials/PageMeta';
+import Remote from '../partials/Remote';
 
-import styles from '../../styles/pages/home.scss';
+import styles from '../../styles/pages/home.module.scss';
 
 const messages = defineMessages({
     metaTitle: {
@@ -21,7 +22,7 @@ const propTypes = {
 const HomePage = () => (
     <div className={styles.container}>
         <PageMeta title={messages.metaTitle} />
-        <div className={styles.logo} />
+        <Remote className={styles.remote} />
     </div>
 );
 

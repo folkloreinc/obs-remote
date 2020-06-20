@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import * as AppPropTypes from '../../lib/PropTypes';
 import Label from '../partials/Label';
 
-import styles from '../../styles/messages/success.scss';
+import styles from '../../styles/messages/success.module.scss';
 
 const propTypes = {
     children: AppPropTypes.text.isRequired,
