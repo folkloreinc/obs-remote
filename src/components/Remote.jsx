@@ -1,29 +1,29 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
-import Cookies from 'js-cookie';
 
-import useObsSocket from '../../hooks/useObsSocket';
-import { ObsProvider } from '../../contexts/ObsContext';
-import ConnectBar from './ConnectBar';
-import SceneItemsBar from './SceneItemsBar';
-import Joystick from './Joystick';
+import useObsSocket from '../hooks/useObsSocket';
+import { ObsProvider } from '../contexts/ObsContext';
+import ConnectBar from './partials/ConnectBar';
+import SceneItemsBar from './partials/SceneItemsBar';
+import Joystick from './partials/Joystick';
 
-import styles from '../../styles/partials/remote.module.scss';
+import styles from '../styles/remote.module.scss';
 
 const propTypes = {
     host: PropTypes.string,
     port: PropTypes.string,
-    className: PropTypes.string,
+    screenshotMaxWidth: PropTypes.number,
+    onConnect: PropTypes.func,
 };
 
 const defaultProps = {
-    host: Cookies.get('obs_host') || 'localhost',
-    port: Cookies.get('obs_port') || '4444',
-    className: null,
+    host: 'localhost',
+    port: '4444',
+    screenshotMaxWidth: 400,
+    onConnect: null,
 };
 
-const Remote = ({ host: initialHost, port: initialPort, className }) => {
+const Remote = ({ host: initialHost, port: initialPort, screenshotMaxWidth, onConnect }) => {
     // Connect
     const [host, setHost] = useState(initialHost);
     const [port, setPort] = useState(initialPort);
@@ -33,10 +33,11 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
             disconnect();
         } else {
             connect();
-            Cookies.set('obs_host', host);
-            Cookies.set('obs_port', port);
+            if (onConnect !== null) {
+                onConnect({ host, port });
+            }
         }
-    }, [connected, connecting, connect, host, port]);
+    }, [connected, connecting, connect, disconnect, host, port, onConnect]);
 
     // Scenes
     const [scenes, setScenes] = useState(null);
@@ -57,7 +58,7 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
                 ...response,
             });
         });
-    }, [setVideoInfo]);
+    }, [obs, setVideoInfo]);
     useEffect(() => {
         if (!connected) {
             return;
@@ -76,13 +77,26 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
                     name: sceneItemName,
                 },
             }).then((response) => {
-                setSceneItem({
-                    ...response,
-                    scene: sceneName,
-                });
+                const sourceRatio = response.sourceHeight / response.sourceWidth;
+                const screenshotWidth = Math.min(screenshotMaxWidth, response.sourceWidth);
+                const screenshotHeight = screenshotWidth * sourceRatio;
+                return obs
+                    .send('TakeSourceScreenshot', {
+                        sourceName: sceneItemName,
+                        embedPictureFormat: 'jpeg',
+                        width: screenshotWidth,
+                        height: screenshotHeight,
+                    })
+                    .then(({ img }) =>
+                        setSceneItem({
+                            ...response,
+                            screenshot: img,
+                            scene: sceneName,
+                        }),
+                    );
             });
         },
-        [setSceneItem],
+        [obs, setSceneItem, screenshotMaxWidth],
     );
     const onSceneItemChange = useCallback(
         (newSceneItem) => {
@@ -96,20 +110,13 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
         [setSceneItem, updateSceneItem],
     );
 
-    const sceneItemRef = useRef({
-        ...sceneItem,
-    });
-    const positionRef = useRef({
-        x: 0,
-        y: 0,
-    });
+    const sceneItemRef = useRef(sceneItem || {});
     sceneItemRef.current = sceneItem || {};
 
-    // Scale
+    // Joystick
     const [interacting, setInteracting] = useState(false);
-
-    const onPositionStart = useCallback(() => setInteracting(true), [setInteracting]);
-    const onPositionStop = useCallback(() => {
+    const onJoystickStart = useCallback(() => setInteracting(true), [setInteracting]);
+    const onJoystickStop = useCallback(() => {
         setInteracting(false);
         updateSceneItem(sceneItem.scene, sceneItem.name);
     }, [setInteracting, sceneItem, updateSceneItem]);
@@ -117,7 +124,6 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
         const {
             current: { scene: sceneName, name: sceneItemName, rotation: sceneItemRotation },
         } = sceneItemRef;
-        positionRef.current = value;
         obs.send('SetSceneItemPosition', {
             'scene-name': sceneName,
             item: sceneItemName,
@@ -201,14 +207,7 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
 
     return (
         <ObsProvider obs={obs} connected={connected} connecting={connecting}>
-            <div
-                className={classNames([
-                    styles.container,
-                    {
-                        [className]: className !== null,
-                    },
-                ])}
-            >
+            <div className={styles.container}>
                 <ConnectBar
                     host={host}
                     port={port}
@@ -230,8 +229,8 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
                                 <Joystick
                                     sceneItem={sceneItem}
                                     videoInfo={videoInfo}
-                                    onStart={onPositionStart}
-                                    onStop={onPositionStop}
+                                    onStart={onJoystickStart}
+                                    onStop={onJoystickStop}
                                     onChange={onJoystickChange}
                                     className={styles.joystick}
                                 />

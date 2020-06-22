@@ -57,11 +57,11 @@ const ConnectBar = ({
                 },
             ])}
         >
-            <form className="form-inline">
-                <div className="input-group mr-sm-2 mb-2 mb-sm-0">
+            <form className="form-inline flex-nowrap">
+                <div className="input-group mr-2">
                     <input
                         className="form-control"
-                        type="search"
+                        type="text"
                         placeholder="Host"
                         value={host}
                         onChange={onHostInputChange}
@@ -69,9 +69,11 @@ const ConnectBar = ({
                     />
                     <input
                         className="form-control flex-grow-0 w-25"
-                        type="search"
+                        type="number"
                         placeholder="Port"
-                        size="4"
+                        style={{
+                            minWidth: '5.5em',
+                        }}
                         value={port}
                         onChange={onPortInputChange}
                         disabled={connecting || connected}

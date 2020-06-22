@@ -24,7 +24,7 @@ const getSceneItemAlignmentOffset = (alignment, width, height) => {
         x: offsetX,
         y: offsetY,
     };
-}
+};
 
 const propTypes = {
     sceneItem: PropTypes.shape({
@@ -41,37 +41,42 @@ const propTypes = {
         sourceHeight: PropTypes.number,
         width: PropTypes.number,
         height: PropTypes.number,
+        screenshot: PropTypes.string,
     }).isRequired,
     videoInfo: PropTypes.shape({
         baseWidth: PropTypes.number,
         baseHeight: PropTypes.number,
     }).isRequired,
-    sceneMinWidth: PropTypes.number,
+    sceneMinWidthRatio: PropTypes.number,
     className: PropTypes.string,
     onStart: PropTypes.func,
     onStop: PropTypes.func,
+    onTap: PropTypes.func,
     onChange: PropTypes.func,
 };
 
 const defaultProps = {
-    sceneMinWidth: 100,
+    sceneMinWidthRatio: 0.4,
     className: null,
     onStart: null,
     onStop: null,
+    onTap: null,
     onChange: null,
 };
 
 const Joystick = ({
     sceneItem,
     videoInfo,
-    sceneMinWidth,
+    sceneMinWidthRatio,
     className,
     onStart,
     onStop,
+    onTap,
     onChange,
 }) => {
+    // eslint-disable-next-line no-unused-vars
+    const [interacting, setInteracting] = useState(false);
     const refContainer = useRef(null);
-    // eslint-disable-next-line
     const [size, setSize] = useState({
         width: 0,
         height: 0,
@@ -80,7 +85,8 @@ const Joystick = ({
         x: sceneItem.position.x,
         y: sceneItem.position.y,
         scale: sceneItem.scale.x,
-        immediate: true,
+        tension: 30,
+        friction: 4,
         onFrame: (position) => {
             if (onChange !== null) {
                 onChange(position);
@@ -92,10 +98,15 @@ const Joystick = ({
         y: sceneItem.position.y,
         scale: sceneItem.scale.x,
     });
-    const lastPosition = useRef({
+    const lastValue = useRef({
         x: sceneItem.position.x,
         y: sceneItem.position.y,
+        scale: sceneItem.scale.x,
     });
+
+    initialValue.current.x = sceneItem.position.x;
+    initialValue.current.y = sceneItem.position.y;
+    initialValue.current.scale = sceneItem.scale.x;
 
     const {
         sourceWidth: sceneItemSourceWidth,
@@ -106,70 +117,84 @@ const Joystick = ({
         height: sceneItemHeight,
     } = sceneItem;
     const { baseWidth: sceneBaseWidth, baseHeight: sceneBaseHeight } = videoInfo;
+    const sceneMinWidth = sceneMinWidthRatio * size.width;
     const sceneScale = sceneMinWidth / sceneBaseWidth;
 
     const sceneWidth = sceneBaseWidth * sceneScale;
     const sceneHeight = sceneBaseHeight * sceneScale;
 
-    const {
-        x: sceneAlignmentOffsetX,
-        y: sceneAlignmentOffsetY,
-    } = getSceneItemAlignmentOffset(sceneItemAlignment, sceneItemWidth, sceneItemHeight);
-
     const itemWidth = sceneItemSourceWidth * sceneScale;
     const itemHeight = sceneItemSourceHeight * sceneScale;
 
     const onDrag = useCallback(
-        ({ offset: [offsetX, offsetY] }) => {
+        ({ movement: [offsetX, offsetY] }) => {
             const relativeX = offsetX / sceneScale;
             const relativeY = offsetY / sceneScale;
+            const newSceneItemWidth = sceneItemSourceWidth * lastValue.current.scale;
+            const newSceneItemHeight = sceneItemSourceHeight * lastValue.current.scale;
+            const {
+                x: newSceneAlignmentOffsetX,
+                y: newSceneAlignmentOffsetY,
+            } = getSceneItemAlignmentOffset(
+                sceneItemAlignment,
+                newSceneItemWidth,
+                newSceneItemHeight,
+            );
+            const left = 0 + newSceneAlignmentOffsetX;
+            const top = 0 + newSceneAlignmentOffsetY;
+            const right = -(newSceneItemWidth - sceneBaseWidth) + newSceneAlignmentOffsetX;
+            const bottom = -(newSceneItemHeight - sceneBaseHeight) + newSceneAlignmentOffsetY;
             const newX =
-                sceneAlignmentOffsetX +
+                newSceneAlignmentOffsetX +
                 relativeX +
-                (initialValue.current.x - sceneAlignmentOffsetX);
+                (initialValue.current.x - newSceneAlignmentOffsetX);
             const newY =
-                sceneAlignmentOffsetY +
+                newSceneAlignmentOffsetY +
                 relativeY +
-                (initialValue.current.y - sceneAlignmentOffsetY);
-            const left = 0 + sceneAlignmentOffsetX;
-            const top = 0 + sceneAlignmentOffsetY;
-            const right = -(sceneItemWidth - sceneBaseWidth) + sceneAlignmentOffsetX;
-            const bottom = -(sceneItemHeight - sceneBaseHeight) + sceneAlignmentOffsetY;
+                (initialValue.current.y - newSceneAlignmentOffsetY);
             const newPosition = {
                 x: Math.max(Math.min(left, newX), right),
                 y: Math.max(Math.min(top, newY), bottom),
             };
-            lastPosition.current = newPosition;
+            lastValue.current.x = newPosition.x;
+            lastValue.current.y = newPosition.y;
             set(newPosition);
         },
         [
             set,
             sceneScale,
-            sceneItemWidth,
-            sceneItemHeight,
+            sceneItemAlignment,
+            sceneItemSourceWidth,
+            sceneItemSourceHeight,
             sceneBaseWidth,
             sceneBaseHeight,
-            sceneAlignmentOffsetX,
-            sceneAlignmentOffsetY,
         ],
     );
+    const minWidth = Math.min(sceneItemSourceWidth, sceneBaseWidth);
+    const minHeight = Math.min(sceneItemSourceHeight, sceneBaseHeight);
+    const minScale = Math.max(sceneBaseHeight / minHeight, sceneBaseWidth / minWidth);
     const onPinch = useCallback(
-        ({ offset: [distance] }) => {
-            const newScale = distance / sceneWidth + initialValue.current.scale;
+        ({ movement:[distance] }) => {
+            const newScale = Math.max(minScale, distance / sceneWidth + initialValue.current.scale);
             const newSceneItemWidth = sceneItemSourceWidth * newScale;
             const newSceneItemHeight = sceneItemSourceHeight * newScale;
             const {
                 x: newSceneAlignmentOffsetX,
                 y: newSceneAlignmentOffsetY,
-            } = getSceneItemAlignmentOffset(sceneItemAlignment, newSceneItemWidth, newSceneItemHeight);
+            } = getSceneItemAlignmentOffset(
+                sceneItemAlignment,
+                newSceneItemWidth,
+                newSceneItemHeight,
+            );
             const left = 0 + newSceneAlignmentOffsetX;
             const top = 0 + newSceneAlignmentOffsetY;
             const right = -(newSceneItemWidth - sceneBaseWidth) + newSceneAlignmentOffsetX;
             const bottom = -(newSceneItemHeight - sceneBaseHeight) + newSceneAlignmentOffsetY;
-            const newX = Math.max(Math.min(left, lastPosition.current.x), right);
-            const newY = Math.max(Math.min(top, lastPosition.current.y), bottom);
-            lastPosition.current.x = newX;
-            lastPosition.current.y = newY;
+            const newX = Math.max(Math.min(left, lastValue.current.x), right);
+            const newY = Math.max(Math.min(top, lastValue.current.y), bottom);
+            lastValue.current.x = newX;
+            lastValue.current.y = newY;
+            lastValue.current.scale = newScale;
             set({
                 x: newX,
                 y: newY,
@@ -178,23 +203,49 @@ const Joystick = ({
         },
         [
             set,
-            sceneItemAlignment,
+            minScale,
             sceneWidth,
+            sceneItemAlignment,
             sceneItemSourceWidth,
             sceneItemSourceHeight,
             sceneBaseWidth,
             sceneBaseHeight,
         ],
     );
-    const bind = useGesture({
-        onDrag,
-        onDragStart: onStart,
-        onDragEnd: onStop,
-        onPinch,
-        onPinchStart: onStart,
-        onPinchEnd: onStop,
-    });
+    const onGestureStart = useCallback(() => {
+        if (onStart !== null) {
+            onStart();
+        }
+        if (onTap !== null) {
+            onTap();
+        }
+        setInteracting(true);
+    }, [onStart, onTap, setInteracting]);
+    const onGestureStop = useCallback(() => {
+        if (onStop !== null) {
+            onStop();
+        }
+        setInteracting(false);
+    }, [onStop, setInteracting]);
+    const bind = useGesture(
+        {
+            onDrag,
+            onDragStart: onGestureStart,
+            onDragEnd: onGestureStop,
+            onPinch,
+            onPinchStart: onGestureStart,
+            onPinchEnd: onGestureStop,
+            onWheel: onPinch,
+            onWheelStart: onGestureStart,
+            onWheelEnd: onGestureStop,
+        },
+        {
+            domTarget: refContainer.current,
+            eventOptions: { passive: true, capture: true },
+        },
+    );
 
+    // Update window size
     useEffect(() => {
         const { current: container } = refContainer;
         const updateSize = () =>
@@ -208,14 +259,18 @@ const Joystick = ({
         return () => {
             window.removeEventListener('resize', onResize);
         };
-    }, [refContainer.current, setSize]);
+    }, [setSize]);
 
+    // Update when scene change
     useEffect(() => {
         set({
             x: sceneItemPositionX,
             y: sceneItemPositionY,
             scale: sceneItemScale,
         });
+        lastValue.current.x = sceneItemPositionX;
+        lastValue.current.y = sceneItemPositionY;
+        lastValue.current.scale = sceneItemScale;
     }, [set, sceneItemPositionX, sceneItemPositionY, sceneItemScale]);
 
     return (
@@ -257,6 +312,7 @@ const Joystick = ({
                     height: interpolate([scale], (iscale) => itemHeight * iscale),
                     marginLeft: interpolate([scale], (iscale) => -((itemWidth * iscale) / 2)),
                     marginTop: interpolate([scale], (iscale) => -((itemHeight * iscale) / 2)),
+                    backgroundImage: `url("${sceneItem.screenshot}")`,
                 }}
                 className={styles.item}
             >

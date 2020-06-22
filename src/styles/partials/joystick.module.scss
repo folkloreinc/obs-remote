@@ -5,6 +5,7 @@
 .container {
     position: relative;
     overflow: hidden;
+    touch-action: none;
     user-select: none;
 
     .scene {
@@ -15,8 +16,16 @@
         width: 100px;
         height: 100px;
         transform-origin: 50% 50% 0;
-        border: solid 1px #000;
+        border: solid 1px #f4a200;
         pointer-events: none;
+        user-select: none;
+
+        .label {
+            top: 100%;
+            right: auto;
+            bottom: auto;
+            left: -1px;
+        }
     }
 
     .item {
@@ -27,14 +36,22 @@
         width: 100px;
         height: 100px;
         transform-origin: 50% 50% 0;
-        background: #eee;
-        pointer-events: auto;
+        background-color: #333;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+        pointer-events: none;
+        user-select: none;
     }
 
     .label {
         position: absolute;
-        top: 2px;
-        right: 2px;
-        font-size: 10px;
+        right: 0;
+        bottom: 100%;
+        padding: 1px 2px;
+        border: solid 1px #fc0;
+        background: #fff;
+        color: #000;
+        font-size: 8px;
     }
 }

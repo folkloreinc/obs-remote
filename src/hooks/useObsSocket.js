@@ -18,11 +18,11 @@ const useObsSocket = ({ host = 'localhost', port = '4444', password } = {}) => {
         obs,
         host,
         port,
+        password,
     ]);
 
     useEffect(() => {
-        const onConnectionOpened = (data) => {
-            console.log(data);
+        const onConnectionOpened = () => {
             setState({
                 connecting: false,
                 connected: true,

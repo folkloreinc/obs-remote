@@ -1,26 +1,26 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import domready from 'domready';
-import defaultRootProps from './data/root';
+import defaultAppProps from './data/app.json';
 
-import Root from './components/Root';
+import App from './components/App';
 
-const getRootProps = () => defaultRootProps;
+const getAppProps = () => defaultAppProps;
 
-const renderRoot = (props) => {
-    const rootEl = document.getElementById('root');
-    const root = React.createElement(Root, props);
-    ReactDOM.render(root, rootEl);
+const renderApp = (props) => {
+    const appEl = document.getElementById('app');
+    const app = React.createElement(App, props);
+    ReactDOM.render(app, appEl);
 };
 
 const boot = () => {
-    const rootProps = getRootProps();
+    const appProps = getAppProps();
 
     if (typeof window.Intl === 'undefined') {
-        const { locale = 'fr' } = rootProps;
-        import(`./vendor/polyfills/intl-${locale}`).then(() => renderRoot(rootProps));
+        const { locale = 'fr' } = appProps;
+        import(`./vendor/polyfills/intl-${locale}`).then(() => renderApp(appProps));
     } else {
-        renderRoot(rootProps);
+        renderApp(appProps);
     }
 };
 
