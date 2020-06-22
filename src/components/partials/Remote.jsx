@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import Cookies from 'js-cookie';
 
 import useObsSocket from '../../hooks/useObsSocket';
 import { ObsProvider } from '../../contexts/ObsContext';
@@ -18,8 +19,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    host: 'localhost',
-    port: '4444',
+    host: Cookies.get('obs_host') || 'localhost',
+    port: Cookies.get('obs_port') || '4444',
     className: null,
 };
 
@@ -33,8 +34,10 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
             disconnect();
         } else {
             connect();
+            Cookies.set('obs_host', host);
+            Cookies.set('obs_port', port);
         }
-    }, [connected, connecting, connect]);
+    }, [connected, connecting, connect, host, port]);
 
     // Scenes
     const [scenes, setScenes] = useState(null);
@@ -123,8 +126,8 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
         (scale) => {
             const centerX = videoInfo.baseWidth / 2;
             const centerY = videoInfo.baseHeight / 2;
-            const maxX = Math.max((sceneItem.sourceWidth * scale) - videoInfo.baseWidth, 0);
-            const maxY = Math.max((sceneItem.sourceHeight * scale) - videoInfo.baseHeight, 0);
+            const maxX = Math.max(sceneItem.sourceWidth * scale - videoInfo.baseWidth, 0);
+            const maxY = Math.max(sceneItem.sourceHeight * scale - videoInfo.baseHeight, 0);
             const { current: position } = positionRef;
             const newX = centerX + (maxX / 2) * -position.x;
             const newY = centerY + (maxY / 2) * -position.y;
@@ -262,6 +265,8 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
                         {sceneItem !== null && videoInfo !== null ? (
                             <>
                                 <Joystick
+                                    sceneItem={sceneItem}
+                                    videoInfo={videoInfo}
                                     onStart={onPositionStart}
                                     onStop={onPositionStop}
                                     onChange={onPositionChange}

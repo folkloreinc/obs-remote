@@ -8,6 +8,20 @@ import { useGesture } from 'react-use-gesture';
 import styles from '../../styles/partials/joystick.module.scss';
 
 const propTypes = {
+    sceneItem: PropTypes.shape({
+        scale: PropTypes.shape({
+            x: PropTypes.number,
+            y: PropTypes.number,
+        }),
+        sourceWidth: PropTypes.number,
+        sourceHeight: PropTypes.number,
+        width: PropTypes.number,
+    }).isRequired,
+    videoInfo: PropTypes.shape({
+        baseWidth: PropTypes.number,
+        baseHeight: PropTypes.number,
+    }).isRequired,
+    sceneMinWidth: PropTypes.number,
     className: PropTypes.string,
     onStart: PropTypes.func,
     onStop: PropTypes.func,
@@ -15,13 +29,14 @@ const propTypes = {
 };
 
 const defaultProps = {
+    sceneMinWidth: 100,
     className: null,
     onStart: null,
     onStop: null,
     onChange: null,
 };
 
-const Joystick = ({ className, onStart, onStop, onChange }) => {
+const Joystick = ({ sceneItem, videoInfo, sceneMinWidth, className, onStart, onStop, onChange }) => {
     const refContainer = useRef(null);
     const [size, setSize] = useState({
         width: 0,
@@ -37,8 +52,19 @@ const Joystick = ({ className, onStart, onStop, onChange }) => {
         },
     }));
 
-    const maxX = (size.width - 100) / 2;
-    const maxY = (size.height - 100) / 2;
+
+    const { sourceWidth, sourceHeight, scale: { x: scale } } = sceneItem;
+    const { baseWidth, baseHeight } = videoInfo;
+    const sceneItemRatio = sourceHeight / sourceWidth;
+    const itemWidth = sceneMinWidth * scale;
+    const itemHeight = itemWidth * sceneItemRatio;
+
+    const sceneRatio = baseHeight / baseWidth;
+    const sceneWidth = sceneMinWidth;
+    const sceneHeight = sceneWidth * sceneRatio;
+
+    const maxX = (size.width - itemWidth) / 2;
+    const maxY = (size.height - itemHeight) / 2;
 
     const onDrag = useCallback(
         ({ offset: [newX, newY] }) => {
@@ -81,6 +107,15 @@ const Joystick = ({ className, onStart, onStop, onChange }) => {
             ])}
             ref={refContainer}
         >
+            <div
+                className={styles.scene}
+                style={{
+                    width: sceneWidth,
+                    height: sceneHeight,
+                    marginLeft: -(sceneWidth / 2),
+                    marginTop: -(sceneHeight / 2),
+                }}
+            />
             <animated.div
                 {...bind()}
                 style={{
@@ -88,8 +123,12 @@ const Joystick = ({ className, onStart, onStop, onChange }) => {
                         [x, y],
                         (tx, ty) => `translate3d(${tx * maxX}px,${ty * maxY}px,0)`,
                     ),
+                    width: itemWidth,
+                    height: itemHeight,
+                    marginLeft: -(itemWidth / 2),
+                    marginTop: -(itemHeight / 2),
                 }}
-                className={styles.knob}
+                className={styles.item}
             />
         </div>
     );
