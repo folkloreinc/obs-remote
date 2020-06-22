@@ -5,6 +5,7 @@
 .container {
     position: relative;
     overflow: hidden;
+    user-select: none;
 
     .scene {
         position: absolute;
@@ -15,7 +16,7 @@
         height: 100px;
         transform-origin: 50% 50% 0;
         border: solid 1px #000;
-        pointer-events: auto;
+        pointer-events: none;
     }
 
     .item {
@@ -28,5 +29,12 @@
         transform-origin: 50% 50% 0;
         background: #eee;
         pointer-events: auto;
+    }
+
+    .label {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        font-size: 10px;
     }
 }

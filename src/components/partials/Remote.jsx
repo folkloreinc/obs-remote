@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import Cookies from 'js-cookie';
@@ -8,7 +8,6 @@ import { ObsProvider } from '../../contexts/ObsContext';
 import ConnectBar from './ConnectBar';
 import SceneItemsBar from './SceneItemsBar';
 import Joystick from './Joystick';
-import Scale from './Scale';
 
 import styles from '../../styles/partials/remote.module.scss';
 
@@ -97,76 +96,40 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
         [setSceneItem, updateSceneItem],
     );
 
-    const sceneRefValue = useMemo(
-        () => ({
-            sceneName: sceneItem !== null ? sceneItem.scene : null,
-            sceneItemName: sceneItem !== null ? sceneItem.name : null,
-            maxX: sceneItem !== null ? Math.max(sceneItem.width - videoInfo.baseWidth, 0) : 0,
-            maxY: sceneItem !== null ? Math.max(sceneItem.height - videoInfo.baseHeight, 0) : 0,
-            centerX: videoInfo !== null ? videoInfo.baseWidth / 2 : 0,
-            centerY: videoInfo !== null ? videoInfo.baseHeight / 2 : 0,
-        }),
-        [sceneItem, videoInfo],
-    );
-    const sceneRef = useRef(sceneRefValue);
+    const sceneItemRef = useRef({
+        ...sceneItem,
+    });
     const positionRef = useRef({
         x: 0,
         y: 0,
     });
-    sceneRef.current = sceneRefValue;
+    sceneItemRef.current = sceneItem || {};
 
     // Scale
     const [interacting, setInteracting] = useState(false);
-    const onScaleStart = useCallback(() => setInteracting(true), [setInteracting]);
-    const onScaleStop = useCallback(() => {
-        setInteracting(false);
-        updateSceneItem(sceneItem.scene, sceneItem.name);
-    }, [setInteracting, sceneItem, updateSceneItem]);
-    const onScaleChange = useCallback(
-        (scale) => {
-            const centerX = videoInfo.baseWidth / 2;
-            const centerY = videoInfo.baseHeight / 2;
-            const maxX = Math.max(sceneItem.sourceWidth * scale - videoInfo.baseWidth, 0);
-            const maxY = Math.max(sceneItem.sourceHeight * scale - videoInfo.baseHeight, 0);
-            const { current: position } = positionRef;
-            const newX = centerX + (maxX / 2) * -position.x;
-            const newY = centerY + (maxY / 2) * -position.y;
-
-            obs.send('SetSceneItemTransform', {
-                'scene-name': sceneItem.scene,
-                item: sceneItem.name,
-                'x-scale': scale,
-                'y-scale': scale,
-                rotation: sceneItem.rotation,
-            });
-
-            obs.send('SetSceneItemPosition', {
-                'scene-name': sceneItem.scene,
-                item: sceneItem.name,
-                x: newX,
-                y: newY,
-            });
-        },
-        [sceneItem, videoInfo],
-    );
 
     const onPositionStart = useCallback(() => setInteracting(true), [setInteracting]);
     const onPositionStop = useCallback(() => {
         setInteracting(false);
         updateSceneItem(sceneItem.scene, sceneItem.name);
     }, [setInteracting, sceneItem, updateSceneItem]);
-    const onPositionChange = (position) => {
+    const onJoystickChange = (value) => {
         const {
-            current: { maxX, maxY, centerX, centerY, sceneName, sceneItemName },
-        } = sceneRef;
-        const newX = centerX + (maxX / 2) * -position.x;
-        const newY = centerY + (maxY / 2) * -position.y;
-        positionRef.current = position;
+            current: { scene: sceneName, name: sceneItemName, rotation: sceneItemRotation },
+        } = sceneItemRef;
+        positionRef.current = value;
         obs.send('SetSceneItemPosition', {
             'scene-name': sceneName,
             item: sceneItemName,
-            x: newX,
-            y: newY,
+            x: value.x,
+            y: value.y,
+        });
+        obs.send('SetSceneItemTransform', {
+            'scene-name': sceneName,
+            item: sceneItemName,
+            'x-scale': value.scale,
+            'y-scale': value.scale,
+            rotation: sceneItemRotation,
         });
     };
 
@@ -269,16 +232,8 @@ const Remote = ({ host: initialHost, port: initialPort, className }) => {
                                     videoInfo={videoInfo}
                                     onStart={onPositionStart}
                                     onStop={onPositionStop}
-                                    onChange={onPositionChange}
+                                    onChange={onJoystickChange}
                                     className={styles.joystick}
-                                />
-                                <Scale
-                                    sceneItem={sceneItem}
-                                    videoInfo={videoInfo}
-                                    onStart={onScaleStart}
-                                    onStop={onScaleStop}
-                                    onChange={onScaleChange}
-                                    className={styles.slider}
                                 />
                             </>
                         ) : null}
