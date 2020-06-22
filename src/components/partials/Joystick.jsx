@@ -107,6 +107,7 @@ const Joystick = ({
     initialValue.current.x = sceneItem.position.x;
     initialValue.current.y = sceneItem.position.y;
     initialValue.current.scale = sceneItem.scale.x;
+    console.log(initialValue.current.scale);
 
     const {
         sourceWidth: sceneItemSourceWidth,
@@ -175,7 +176,7 @@ const Joystick = ({
     const minScale = Math.max(sceneBaseHeight / minHeight, sceneBaseWidth / minWidth);
     const onPinch = useCallback(
         ({ movement:[distance] }) => {
-            const newScale = Math.max(minScale, distance / sceneWidth + initialValue.current.scale);
+            const newScale = Math.max(minScale, distance / 100 + initialValue.current.scale);
             const newSceneItemWidth = sceneItemSourceWidth * newScale;
             const newSceneItemHeight = sceneItemSourceHeight * newScale;
             const {
