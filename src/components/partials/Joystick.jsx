@@ -76,7 +76,11 @@ const Joystick = ({
 }) => {
     // eslint-disable-next-line no-unused-vars
     const [interacting, setInteracting] = useState(false);
+    const [animating, setAnimating] = useState(false);
     const refContainer = useRef(null);
+    const refStarted = useRef(false);
+    const refLastInteracting = useRef(false);
+    const refLastAnimating = useRef(false);
     const [size, setSize] = useState({
         width: 0,
         height: 0,
@@ -91,6 +95,12 @@ const Joystick = ({
             if (onChange !== null) {
                 onChange(position);
             }
+        },
+        onStart: () => {
+            setAnimating(true);
+        },
+        onRest: () => {
+            setAnimating(false);
         },
     }));
     const initialValue = useRef({
@@ -107,7 +117,6 @@ const Joystick = ({
     initialValue.current.x = sceneItem.position.x;
     initialValue.current.y = sceneItem.position.y;
     initialValue.current.scale = sceneItem.scale.x;
-    console.log(initialValue.current.scale);
 
     const {
         sourceWidth: sceneItemSourceWidth,
@@ -156,6 +165,7 @@ const Joystick = ({
             const newPosition = {
                 x: Math.max(Math.min(left, newX), right),
                 y: Math.max(Math.min(top, newY), bottom),
+                immediate: false,
             };
             lastValue.current.x = newPosition.x;
             lastValue.current.y = newPosition.y;
@@ -175,7 +185,11 @@ const Joystick = ({
     const minHeight = Math.min(sceneItemSourceHeight, sceneBaseHeight);
     const minScale = Math.max(sceneBaseHeight / minHeight, sceneBaseWidth / minWidth);
     const onPinch = useCallback(
-        ({ movement:[distance] }) => {
+        ({ wheeling, movement: [distancePinch, distanceWheel] }) => {
+            const distance = wheeling ? distanceWheel : distancePinch;
+            if (distance === 0) {
+                return;
+            }
             const newScale = Math.max(minScale, distance / 100 + initialValue.current.scale);
             const newSceneItemWidth = sceneItemSourceWidth * newScale;
             const newSceneItemHeight = sceneItemSourceHeight * newScale;
@@ -200,6 +214,7 @@ const Joystick = ({
                 x: newX,
                 y: newY,
                 scale: newScale,
+                immediate: false,
             });
         },
         [
@@ -214,18 +229,12 @@ const Joystick = ({
         ],
     );
     const onGestureStart = useCallback(() => {
-        if (onStart !== null) {
-            onStart();
-        }
         if (onTap !== null) {
             onTap();
         }
         setInteracting(true);
     }, [onStart, onTap, setInteracting]);
     const onGestureStop = useCallback(() => {
-        if (onStop !== null) {
-            onStop();
-        }
         setInteracting(false);
     }, [onStop, setInteracting]);
     const bind = useGesture(
@@ -242,6 +251,9 @@ const Joystick = ({
         },
         {
             domTarget: refContainer.current,
+            wheel: {
+                axis: 'y',
+            },
             eventOptions: { passive: true, capture: true },
         },
     );
@@ -268,11 +280,38 @@ const Joystick = ({
             x: sceneItemPositionX,
             y: sceneItemPositionY,
             scale: sceneItemScale,
+            immediate: true,
         });
         lastValue.current.x = sceneItemPositionX;
         lastValue.current.y = sceneItemPositionY;
         lastValue.current.scale = sceneItemScale;
     }, [set, sceneItemPositionX, sceneItemPositionY, sceneItemScale]);
+
+    useEffect(() => {
+        if (interacting && !refLastInteracting.current && !refStarted.current) {
+            refStarted.current = true;
+            if (onStart !== null) {
+                onStart();
+            }
+        }
+        if (
+            !interacting &&
+            !animating &&
+            (refLastInteracting.current || refLastAnimating.current) &&
+            refStarted.current
+        ) {
+            refStarted.current = false;
+            if (onStop !== null) {
+                onStop();
+            }
+        }
+        if (interacting !== refLastInteracting.current) {
+            refLastInteracting.current = interacting;
+        }
+        if (animating !== refLastAnimating.current) {
+            refLastAnimating.current = animating;
+        }
+    }, [interacting, animating, onStart, onStop]);
 
     return (
         <div
@@ -301,18 +340,23 @@ const Joystick = ({
             <animated.div
                 style={{
                     transform: interpolate(
-                        [x, y],
-                        (ix, iy) =>
+                        [x, y, scale],
+                        (ix, iy, iscale) =>
                             `translate3d(
                                 ${ix * sceneScale - sceneWidth / 2}px,
                                 ${iy * sceneScale - sceneHeight / 2}px,
                                 0
-                            )`,
+                            )
+                            scale(${iscale})`,
                     ),
-                    width: interpolate([scale], (iscale) => itemWidth * iscale),
-                    height: interpolate([scale], (iscale) => itemHeight * iscale),
-                    marginLeft: interpolate([scale], (iscale) => -((itemWidth * iscale) / 2)),
-                    marginTop: interpolate([scale], (iscale) => -((itemHeight * iscale) / 2)),
+                    // width: interpolate([scale], (iscale) => itemWidth * iscale),
+                    // height: interpolate([scale], (iscale) => itemHeight * iscale),
+                    // marginLeft: interpolate([scale], (iscale) => -((itemWidth * iscale) / 2)),
+                    // marginTop: interpolate([scale], (iscale) => -((itemHeight * iscale) / 2)),
+                    width: itemWidth,
+                    height: itemHeight,
+                    marginLeft: -(itemWidth / 2),
+                    marginTop: -(itemHeight / 2),
                     backgroundImage: `url("${sceneItem.screenshot}")`,
                 }}
                 className={styles.item}

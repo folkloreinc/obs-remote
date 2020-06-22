@@ -115,12 +115,20 @@ const Remote = ({ host: initialHost, port: initialPort, screenshotMaxWidth, onCo
 
     // Joystick
     const [interacting, setInteracting] = useState(false);
-    const onJoystickStart = useCallback(() => setInteracting(true), [setInteracting]);
+    const refInteracting = useRef(interacting);
+    const onJoystickStart = useCallback(() => {
+        refInteracting.current = true;
+        setInteracting(true);
+    }, [setInteracting]);
     const onJoystickStop = useCallback(() => {
+        refInteracting.current = false;
         setInteracting(false);
         updateSceneItem(sceneItem.scene, sceneItem.name);
     }, [setInteracting, sceneItem, updateSceneItem]);
     const onJoystickChange = (value) => {
+        if (!refInteracting.current) {
+            return;
+        }
         const {
             current: { scene: sceneName, name: sceneItemName, rotation: sceneItemRotation },
         } = sceneItemRef;

@@ -27,7 +27,6 @@ const SceneItemsBar = ({ scenes, sceneItem, className, onSceneItemChange }) => {
     const onSelectChange = useCallback(
         (e) => {
             const selectValue = (e.target.value || '').split('||');
-            console.log(e.target.value, selectValue);
             let value = null;
             if (selectValue.length > 1) {
                 value = {
