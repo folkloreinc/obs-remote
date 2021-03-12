@@ -50,7 +50,7 @@
         "imagemin-cli": "^5.1.0",
         "node-sass": "^4.14.1",
         "prettier": "^2.0.5",
-        "react-dev-utils": "^10.2.1",
+        "react-dev-utils": "^11.0.4",
         "stylelint": "^13.6.0",
         "stylelint-config-property-sort-order-smacss": "^6.3.0",
         "stylelint-config-recommended": "^3.0.0",
