@@ -48,7 +48,7 @@
         "eslint-plugin-react": "^7.19.0",
         "http-proxy-middleware": "^1.0.4",
         "imagemin-cli": "^5.1.0",
-        "node-sass": "^4.14.1",
+        "node-sass": "^7.0.0",
         "prettier": "^2.0.5",
         "react-dev-utils": "^10.2.1",
         "stylelint": "^13.6.0",
