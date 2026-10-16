@@ -36,7 +36,7 @@
         "react-use-gesture": "^7.0.15"
     },
     "devDependencies": {
-        "@folklore/react-scripts": "^3.4.9",
+        "@folklore/react-scripts": "^5.0.0-alpha.1",
         "@prettier/plugin-php": "^0.14.2",
         "babel-eslint": "^10.1.0",
         "eslint": "^6.8.0",
@@ -51,10 +51,10 @@
         "node-sass": "^4.14.1",
         "prettier": "^2.0.5",
         "react-dev-utils": "^11.0.4",
-        "stylelint": "^13.6.0",
-        "stylelint-config-property-sort-order-smacss": "^6.3.0",
+        "stylelint": "^17.16.0",
+        "stylelint-config-property-sort-order-smacss": "^11.2.0",
         "stylelint-config-recommended": "^3.0.0",
-        "stylelint-config-sass-guidelines": "^7.0.0",
+        "stylelint-config-sass-guidelines": "^13.0.0",
         "stylelint-scss": "^3.17.2"
     }
 }
